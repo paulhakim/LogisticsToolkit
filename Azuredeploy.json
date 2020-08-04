@@ -1,0 +1,592 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "OB-VM-Name": {
+            "defaultValue": "ILT-OB",
+            "type": "String",
+            "metadata": {
+                "description": "OB VM name"
+            }
+        },
+        "OB-VM-Size": {
+            "defaultValue": "Standard_DS1_v2",
+            "allowedValues": [
+                "Standard_A2_V2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS14_v2"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "This is the size of your VM"
+            }
+        },
+        "Create Database VM": {
+            "type": "String",
+            "defaultValue": "No",
+            "allowedValues": [
+                "Yes",
+                "No"
+            ],
+            "metadata": {
+                "description": "Specify Yes or No whether to create a Database VM or not"
+            }
+        },
+        "Database Operating System Image": {
+            "defaultValue": "Linux | rg-rhel | restoredosvhd",
+            "allowedValues": [
+                "Linux | Marketpalce | Canonical | UbuntuServer | 14.04.4-LTS",
+                "Windows | ImageRG | ImageName | Windows_Server(License Type)",
+                "Linux | ImageRG | ImagePublisher | Image Offer | Sku"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "Image for Database if Yes is selected for the Create Database VM Parameter"
+            }
+        },
+        "DB-VM-Name": {
+            "defaultValue": "ILT-DB",
+            "type": "String",
+            "metadata": {
+                "description": "OB VM name"
+            }
+        },
+        "DB-VM-Size": {
+            "defaultValue": "Standard_DS1_v2",
+            "allowedValues": [
+                "Standard_A2_V2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS14_v2"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "This is the size of your VM"
+            }
+        },
+        "Create ACR": {
+            "type": "String",
+            "defaultValue": "Yes",
+            "allowedValues": [
+                "Yes",
+                "No"
+            ],
+            "metadata": {
+                "description": "Specify Yes or No whether to create a Database VM or not"
+            }
+        },
+        "ACR-Name": {
+            "defaultValue": "pahiltacr",
+            "type": "String",
+            "metadata": {
+              "description": "Name of the Azure Container Registry"
+            }
+          },
+          "Number-Of-Desktops": {
+            "defaultValue": 2,
+            "type": "int",
+            "metadata": {
+                "description": "Number of servers to provision."
+            }
+        },
+        "Desktop-VM-Name": {
+            "defaultValue": "ILT-Desktop",
+            "type": "String",
+            "metadata": {
+                "description": "Desktop VM name"
+            }
+        },
+        "Desktop-VM-Size": {
+            "defaultValue": "Standard_DS1_v2",
+            "allowedValues": [
+                "Standard_A2_V2",
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_DS11_v2",
+                "Standard_DS12_v2",
+                "Standard_DS14_v2"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "This is the size of your VM"
+            }
+        },
+        "Image Storage Account Name": {
+            "defaultValue": "iltstorageimage99",
+            "type": "String",
+            "metadata": {
+                "description": "This is the name of the your storage account which contains the image vhd"
+            }
+        },
+        "Image VHD Name": {
+            "defaultValue": "abcd.vhd",
+            "type": "String",
+            "metadata": {
+                "description": "This is the name of the vhd file. Be sure to include .vhd"
+            }
+        },
+        "Create Managed Image": {
+            "type": "String",
+            "defaultValue": "No",
+            "allowedValues": [
+                "Yes",
+                "No"
+            ],
+            "metadata": {
+                "description": "Use this option if the OB image has been generalized"
+            }
+        },
+        "Diagnostics Storage Account Name": {
+            "defaultValue": "pahssarhel",
+            "type": "String",
+            "metadata": {
+                "description": "This is the name of the your storage account to use for boot diagnostics"
+            }
+        },
+        "Administrator Username": {
+            "defaultValue": "ilt-azureadmin",
+            "type": "String",
+            "metadata": {
+                "description": "User Name for the Virtual Machine"
+            }
+        },
+        "Administrator Password": {
+            "type": "SecureString",
+            "metadata": {
+                "description": "Password for the Virtual Machine"
+            }
+        }
+    },
+    "variables": {
+        "imageRG": "[split(parameters('Database Operating System Image'), ' | ')[1]]",
+        "imagePublisher": "[split(parameters('Database Operating System Image'), ' | ')[2]]",
+        "imageOffer": "[split(parameters('Database Operating System Image'), ' | ')[3]]",
+        "imageSku": "[split(parameters('Database Operating System Image'), ' | ')[4]]",
+        "osDiskName": "[split(parameters('Database Operating System Image'), ' | ')[2]]",
+        "virtualNetworkName": "ILT-VirtualNetwork",
+        "WorkloadSubnetNSGName": "ILT-ApplicationSubnet-NSG",
+        "addressprefix": "10.0.0.0/24",
+        "bastionPIPName": "BastionPIP",
+        "bastionsubnetname": "AzureBastionSubnet",
+        "bastionsubnetPrefix": "10.0.0.0/27",
+        "workloadsubnetname": "ApplicationSubnet",
+        "workloadsubnetprefix": "10.0.0.128/25",
+        "workloadsubnetname1": "workloadsubnet",
+        "workloadsubnetPrefix1": "10.0.0.32/27",
+        "workloadsubnetname2": "workload2subnet",
+        "workloadsubnetPrefix2": "10.0.0.64/27",
+        "workloadsubnetname3": "workload3subnet",
+        "workloadsubnetPrefix3": "10.0.0.96/27",
+        "WorkloadSubnetRef" : "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('workloadsubnetName'))]",
+        "WorkloadSubnetRef1" : "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('workloadsubnetName1'))]",
+        "WorkloadSubnetRef2" : "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('workloadsubnetName2'))]",
+        "WorkloadSubnetRef3" : "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('workloadsubnetName3'))]",
+        "bastion-host-name": "bastionhost",
+        "bastionPIPAddressType": "Static",
+        "ImageName": "OpenBravoImage",
+        "imagerefid": "[resourceId('Microsoft.Compute/images', variables('ImageName'))]",
+        "OSAccountType": "Standard_LRS",
+        "OSType": "Linux",
+        "OSDiskBlobURI": "[concat('http://', parameters('Image Storage Account Name'), '.blob.core.usgovcloudapi.net/', 'images/', parameters('Image VHD Name'))]",
+        "OSDiskCaching": "",
+        "ZoneResilent": "false",
+        "hypervgeneration": "v1",
+        "ACRSku": "standard",
+        "acrAdminUserEnabled": "true"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-04-01",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('virtualNetworkName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+            ],
+            "properties": {
+              "addressSpace": {
+                "addressPrefixes": [
+                  "[variables('addressPrefix')]"
+                ]
+              },
+              "subnets": [
+                {
+                  "name": "[variables('bastionsubnetname')]",
+                  "properties": {
+                    "addressPrefix": "[variables('bastionsubnetPrefix')]"
+                  }
+                },
+                {
+                    "name": "[variables('workloadsubnetname')]",
+                    "properties": {
+                      "addressPrefix": "[variables('workloadsubnetprefix')]"
+                    }
+                  },
+                  {
+                    "name": "[variables('workloadsubnetname1')]",
+                    "properties": {
+                      "addressPrefix": "[variables('workloadsubnetprefix1')]"
+                    }
+                  },
+                  {
+                    "name": "[variables('workloadsubnetname2')]",
+                    "properties": {
+                      "addressPrefix": "[variables('workloadsubnetprefix2')]"
+                    }
+                  },
+                  {
+                    "name": "[variables('workloadsubnetname3')]",
+                    "properties": {
+                      "addressPrefix": "[variables('workloadsubnetprefix3')]"
+                    }
+                  }
+              ]
+            }
+          },
+          {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-02-01",
+            "name": "[variables('WorkloadSubnetNSGName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('VirtualNetworkName'))]"
+            ],
+            "properties": {
+              "securityRules": [
+                {
+                  "name": "443",
+                  "properties": {
+                    "priority": 1010,
+                    "protocol": "TCP",
+                    "access": "Allow",
+                    "direction": "Inbound",
+                    "sourceAddressPrefix": "*",
+                    "sourcePortRange": "*",
+                    "destinationAddressPrefix": "*",
+                    "destinationPortRange": "443"
+                  }
+                }
+              ]
+            }
+          },          
+          {
+            "apiVersion": "2019-02-01",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "name": "[variables('bastionPIPName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "[variables('bastionPIPAddressType')]"
+            }
+        },
+        {
+            "apiVersion": "2018-10-01",
+            "type": "Microsoft.Network/bastionHosts",
+            "name": "[variables('bastion-host-name')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPIPName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('VirtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "IpConf",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('VirtualNetworkName'), variables('bastionsubnetname'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPIPname'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2019-06-01",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('Diagnostics Storage Account Name')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+              "name": "Standard_LRS"
+            },
+            "kind": "StorageV2"
+          },
+          {
+            "condition": "[equals(parameters('Create Managed Image'),'Yes')]",
+            "apiVersion": "2019-07-01",
+            "type": "Microsoft.Compute/images",
+            "name": "[variables('ImageName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "storageProfile": {
+                    "osDisk": {
+                        "osType": "[variables('osType')]",
+                        "blobUri": "[variables('osDiskBlobUri')]",
+                        "caching": "[variables('osDiskCaching')]",
+                        "storageAccountType": "[variables('osAccountType')]"
+                    },
+                    "dataDisks": []
+                },
+                "hyperVGeneration": "[variables('hyperVGeneration')]"
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "apiVersion": "2018-06-01",
+            "name": "[concat(parameters('OB-VM-Name'),'_osdisk')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "properties": {
+                "creationData": {
+                    "createOption": "import",
+                    "storageaccountid": "[resourceId('Microsoft.Storage/storageAccounts', parameters('Image Storage Account Name'))]",
+                    "sourceuri": "[variables('OSDiskBlobURI')]"
+                },
+                "diskSizeGB": 1023
+            }
+        },        
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(tolower(parameters('OB-VM-Name')), '-nic')]",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('VirtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('WorkloadSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('OB-VM-Name')]",
+            "apiVersion": "2017-03-30",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('OB-VM-Size')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "ostype": "Linux",
+                        "createOption": "Attach",
+                        "caching": "none",
+                        "managedDisk": {
+                            "id": "[concat(resourceGroup().id, '/providers/','Microsoft.Compute/disks/', parameters('OB-VM-Name'), '_osdisk')]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(tolower(parameters('OB-VM-Name')), '-NIC'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat('http://', parameters('Diagnostics Storage Account Name'), '.blob.core.usgovcloudapi.net')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(tolower(parameters('OB-VM-Name')), '-nic'))]",
+                "[variables('ImageName')]",
+                "[concat(parameters('OB-VM-Name'),'_osdisk')]",
+                "[parameters('Diagnostics Storage Account Name')]"
+            ]
+        },
+        {
+            "condition": "[equals(parameters('Create Database VM'),'Yes')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(tolower(parameters('DB-VM-Name')), '-NIC')]",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('VirtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('WorkloadSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "condition": "[equals(parameters('Create Database VM'),'Yes')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('DB-VM-Name')]",
+            "apiVersion": "2017-03-30",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('DB-VM-Size')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('DB-VM-Name')]",
+                    "adminUsername": "[parameters('Administrator Username')]",
+                    "adminPassword": "[parameters('Administrator Password')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('ImagePublisher')]",
+                        "offer": "[variables('ImageOffer')]",
+                        "sku": "[variables('ImageSku')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat(parameters('DB-VM-Name'),'_osdisk')]",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(tolower(parameters('DB-VM-Name')), '-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat('http://', parameters('Diagnostics Storage Account Name'), '.blob.core.usgovcloudapi.net')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(tolower(parameters('DB-VM-Name')), '-nic'))]",
+                "[parameters('Diagnostics Storage Account Name')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(toLower(parameters('Desktop-VM-Name')), copyIndex(), '-nic')]",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "nicLoop",
+                "count": "[parameters('Number-Of-Desktops')]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('WorkloadSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('VirtualNetworkName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(parameters('Desktop-VM-Name'), copyindex())]",
+            "apiVersion": "2019-12-01",
+            "location": "[resourceGroup().location]",
+            "copy": {
+                "name": "vmLoop",
+                "count": "[parameters('Number-Of-Desktops')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('Desktop-VM-Size')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('Desktop-VM-Name')]",
+                    "adminUsername": "[parameters('Administrator Username')]",
+                    "adminPassword": "[parameters('Administrator Password')]",
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVmAgent": true
+                    }
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsDesktop",
+                        "offer": "Windows-10",
+                        "sku": "rs5-pro",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat(parameters('Desktop-VM-Name'), copyIndex(), '_osdisk')]",
+                        "createOption": "FromImage"
+                    }
+                },
+                "licenseType": "Windows_Client",
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(toLower(parameters('Desktop-VM-Name')), copyIndex(), '-nic'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[concat('http://', parameters('Diagnostics Storage Account Name'), '.blob.core.usgovcloudapi.net')]"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(toLower(parameters('Desktop-VM-Name')), copyIndex(), '-nic'))]",
+                "[parameters('Diagnostics Storage Account Name')]"
+            ]
+        },
+        {
+            "condition": "[equals(parameters('Create ACR'),'Yes')]",
+            "name": "[parameters('ACR-Name')]",
+            "type": "Microsoft.ContainerRegistry/registries",
+            "apiVersion": "2019-05-01",
+            "location": "[resourceGroup().location]",
+            "comments": "Container registry for storing docker images",
+            "sku": {
+              "name": "[variables('acrSku')]",
+              "tier": "[variables('acrSku')]"
+            },
+            "properties": {
+              "adminUserEnabled": "[variables('acrAdminUserEnabled')]"
+            }
+          }
+    ]
+}

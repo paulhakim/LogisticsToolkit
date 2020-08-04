@@ -1,0 +1,18 @@
+Steps
+
+1. Prereqs
+    Azure Subscription
+    Cloud Shell Enabled
+    AZ Copy Installed: https://aka.ms/downloadazcopy-v10-windows
+
+Install:
+    azcopy C:\Users\Pahakim\Downloads\OpenBravo.vhd 
+    Run ARM template to create storage account
+    Add account as Storage Blob Data Onwer
+    Run Script to copy VHD to storage account
+    Run ARM template to create ILT environment
+    Usr docker to push image to ACR
+    Use CloudShell to create and start ACI
+
+
+

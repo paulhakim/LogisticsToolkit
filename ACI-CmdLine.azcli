@@ -1,0 +1,42 @@
+az cloud set --name AzureUSGovernment
+az login
+
+RES_GROUP=ILT-Test3 # Resource Group name
+ACR_NAME=pahakimiltacr       # Azure Container Registry registry name
+AKV_NAME=pahakimiltakv    # Azure Key Vault vault name
+
+az keyvault create -g $RES_GROUP -n $AKV_NAME
+
+# Create service principal, store its password in vault (the registry *password*)
+az keyvault secret set \
+  --vault-name $AKV_NAME \
+  --name $ACR_NAME-pull-pwd \
+  --value $(az ad sp create-for-rbac \
+                --name http://$ACR_NAME-pull \
+                --scopes $(az acr show --name $ACR_NAME --query id --output tsv) \
+                --role acrpull \
+                --query password \
+                --output tsv)
+
+# Store service principal ID in vault (the registry *username*)
+az keyvault secret set \
+    --vault-name $AKV_NAME \
+    --name $ACR_NAME-pull-usr \
+    --value $(az ad sp show --id http://$ACR_NAME-pull --query appId --output tsv)
+
+
+ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --resource-group $RES_GROUP --query "loginServer" --output tsv)
+
+az container create \
+    --name aci-demo \
+    --resource-group $RES_GROUP \
+    --image $ACR_LOGIN_SERVER/custom/oraclelinux:latest \
+    --registry-login-server $ACR_LOGIN_SERVER \
+    --registry-username $(az keyvault secret show --vault-name $AKV_NAME -n $ACR_NAME-pull-usr --query value -o tsv) \
+    --registry-password $(az keyvault secret show --vault-name $AKV_NAME -n $ACR_NAME-pull-pwd --query value -o tsv) \
+    --restart-policy OnFailure \
+    --ports 22 1521 8080 5000 \
+    --command-line "/workspace/scripts/init_services.sh -u oracle -s oracle" \
+    --vnet "/subscriptions/810e2d26-3401-46a5-b431-474f7399bb57/resourceGroups/ILT-Test3/providers/Microsoft.Network/virtualNetworks/ILT-VirtualNetwork" \
+    --subnet "workload2subnet" \
+    --query ipAddress.fqdn
