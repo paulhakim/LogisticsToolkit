@@ -1,11 +1,11 @@
 # Steps to deploy logistic toolkit infrastructure
 
-1. Prereqs
+## 1. Prereqs
     Azure Subscription
     Cloud Shell Enabled
     AZ Copy Installed: https://aka.ms/downloadazcopy-v10-windows
 
-Install:
+## Install:
     1. Run ARM template to create storage account
     <a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpaulhakim%2FLogisticsToolkit%2Fmaster%2FCreateStorageForImage.json"  target="_blank">
     <img src="http://azuredeploy.net/AzureGov.png"/>
@@ -13,8 +13,11 @@ Install:
     2. Create a container in the storage account named images
     3. Explicitly add your account as Storage Blob Data Onwer
     4. Use AZCOPY to copy the VHD to your storage acccount:
+        ```
         azcopy login --tenant-id=<AAD-TENANT-ID> --aad-endpoint "https://login.microsoftonline.us"
+        ```
         azcopy copy C:\images\abcd.vhd https://iltstorageimage99.blob.core.usgovcloudapi.net/images --trusted-microsoft-suffixes *.core.usgovcloudapi.net
+        ```
     5. Run ARM template to create ILT environment 
     <a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpaulhakim%2FLogisticsToolkit%2Fmaster%2Fazuredeploy.json"  target="_blank">
     <img src="http://azuredeploy.net/AzureGov.png"/>
