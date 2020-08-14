@@ -20,7 +20,7 @@
         azcopy copy C:\images\abcd.vhd https://storageaccountname.blob.core.usgovcloudapi.net/images --trusted-microsoft-suffixes *.core.usgovcloudapi.net
         ``` \
     5. Run ARM template to create ILT environment \
-    <a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpaulhakim%2FLogisticsToolkit%2Fmaster%2Fazuredeploy.json"  target="_blank">
+    <a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpaulhakim%2FLogisticsToolkit%2Fmaster%2FAzuredeploy.json"  target="_blank">
     <img src="http://azuredeploy.net/AzureGov.png"/>
     </a> \
     6. Use docker to push container image to ACR \
