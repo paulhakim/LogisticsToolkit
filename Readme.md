@@ -20,10 +20,10 @@
     <a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpaulhakim%2FLogisticsToolkit%2Fmaster%2FAzuredeploy.json"  target="_blank">
     <img src="http://azuredeploy.net/AzureGov.png"/>
     </a>
-6. Use docker to push container image to ACR
+6. Use docker to push container image to ACR (Replace **acrname** with the name of your container registry)
 >       az cloud set --name AzureUSGovernment
 >       az login
->       az acr login --name pahiltacr
+>       az acr login --name acrname
 >       docker tag oraclelinux:8.2 acrname.azurecr.us/custom/oraclelinux
 >       docker push acrname.azurecr.us/custom/oraclelinux
 
