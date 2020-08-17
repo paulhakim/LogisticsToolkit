@@ -21,11 +21,11 @@
     <img src="http://azuredeploy.net/AzureGov.png"/>
     </a>
 6. Use docker to push container image to ACR
-> az cloud set --name AzureUSGovernment \
-> az login \
-> az acr login --name pahiltacr \
-> docker tag oraclelinux:8.2 acrname.azurecr.us/custom/oraclelinux \
-> docker push acrname.azurecr.us/custom/oraclelinux
+>       az cloud set --name AzureUSGovernment \
+>       az login \
+>       az acr login --name pahiltacr \
+>       docker tag oraclelinux:8.2 acrname.azurecr.us/custom/oraclelinux \
+>       docker push acrname.azurecr.us/custom/oraclelinux
 
 7. Use CloudShell to create and start ACI using the ACI-CmdLine.azcli file
 
