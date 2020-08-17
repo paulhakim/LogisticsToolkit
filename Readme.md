@@ -1,6 +1,6 @@
 # Steps to deploy logistic toolkit infrastructure
 
-## Prereqs
+**Prereqs**
     Azure Subscription
     Cloud Shell Enabled
     AZ Copy Installed: https://aka.ms/downloadazcopy-v10-windows
