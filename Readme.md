@@ -9,7 +9,7 @@
 1. Run ARM template to create storage account \
     <a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpaulhakim%2FLogisticsToolkit%2Fmaster%2FCreateStorageForImage.json"  target="_blank">
     <img src="http://azuredeploy.net/AzureGov.png"/>
-    </a> \
+    </a>
 2. Create a container in the storage account named images \
 3. Explicitly add your account as Storage Blob Data Onwer \
 4. Use AZCOPY to copy the VHD to your storage acccount: \
