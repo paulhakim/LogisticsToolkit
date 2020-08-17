@@ -6,7 +6,7 @@
     AZ Copy Installed: https://aka.ms/downloadazcopy-v10-windows
 
 **Install**
-1. Run ARM template to create storage account
+1. Run ARM template to create storage account \
     <a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpaulhakim%2FLogisticsToolkit%2Fmaster%2FCreateStorageForImage.json"  target="_blank">
     <img src="http://azuredeploy.net/AzureGov.png"/>
     </a> \
