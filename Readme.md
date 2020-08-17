@@ -27,7 +27,7 @@
 >       docker tag oraclelinux:8.2 acrname.azurecr.us/custom/oraclelinux
 >       docker push acrname.azurecr.us/custom/oraclelinux
 
-7. Use CloudShell to create and start ACI using the ACI-CmdLine.azcli file
+7. Use CloudShell to create and start Azure Container Instances using the ACI-CmdLine.azcli file
 
 
 
