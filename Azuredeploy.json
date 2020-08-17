@@ -38,7 +38,7 @@
             }
         },
         "Database Operating System Image": {
-            "defaultValue": "Linux | rg-rhel | restoredosvhd",
+            "defaultValue": "Linux | Marketpalce | Canonical | UbuntuServer | 14.04.4-LTS",
             "allowedValues": [
                 "Linux | Marketpalce | Canonical | UbuntuServer | 14.04.4-LTS",
                 "Windows | ImageRG | ImageName | Windows_Server(License Type)",
@@ -85,7 +85,7 @@
             }
         },
         "ACR-Name": {
-            "defaultValue": "pahiltacr",
+            "defaultValue": "acrname",
             "type": "String",
             "metadata": {
               "description": "Name of the Azure Container Registry"
@@ -148,14 +148,14 @@
             }
         },
         "Diagnostics Storage Account Name": {
-            "defaultValue": "pahssarhel",
+            "defaultValue": "diagstorageaccount",
             "type": "String",
             "metadata": {
                 "description": "This is the name of the your storage account to use for boot diagnostics"
             }
         },
         "Administrator Username": {
-            "defaultValue": "ilt-azureadmin",
+            "defaultValue": "lt-azureadmin",
             "type": "String",
             "metadata": {
                 "description": "User Name for the Virtual Machine"
